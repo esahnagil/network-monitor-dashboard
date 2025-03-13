@@ -82,14 +82,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <div className="flex min-h-screen bg-background relative overflow-x-hidden">
+        <div className="flex h-screen bg-background overflow-hidden">
           <Sidebar visible={showSidebar} setVisible={setShowSidebar} />
 
-          <div className={cn(
-            "flex-1 transition-all duration-300 ease-in-out min-h-screen relative",
-            showSidebar ? "ml-64" : "ml-0"
-          )}>
-            <header className="sticky top-0 bg-white shadow-sm z-10">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <header className="bg-white shadow-sm z-10">
               <div className="flex items-center justify-between p-4">
                 <button 
                   className="text-gray-500 hover:text-gray-700 md:hidden"
@@ -165,7 +162,7 @@ function App() {
               </div>
             </header>
 
-            <main className="p-6">
+            <main className="flex-1 overflow-y-auto p-6">
               <Router />
             </main>
           </div>

@@ -145,17 +145,21 @@ const Sidebar = ({ visible, setVisible }: SidebarProps) => {
 
       <nav
         className={cn(
-          "absolute left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 ease-in-out",
+          "h-full bg-gray-900 text-white transition-[width] duration-300 ease-in-out flex-shrink-0",
           {
-            "w-64": !isMinimized,
-            "w-16": isMinimized,
-            "-ml-64": !visible && !isMinimized,
-            "-ml-16": !visible && isMinimized,
-            "ml-0": visible,
+            "w-64": !isMinimized && visible,
+            "w-16": isMinimized && visible,
+            "w-0": !visible,
+            "md:w-64": !isMinimized && visible,
+            "md:w-16": isMinimized && visible,
+            "md:w-0": !visible,
           }
         )}
       >
-        <div className="flex flex-col h-full">
+        <div className={cn(
+          "h-full flex flex-col w-full",
+          !visible && "hidden"
+        )}>
           <div className={cn(
             "p-4 flex items-center",
             isMinimized ? "justify-center" : "justify-between"
