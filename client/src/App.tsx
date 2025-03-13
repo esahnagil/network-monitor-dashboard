@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { LanguageProvider } from "@/i18n/LanguageContext";
 import { LanguageSelector } from "@/components/language-selector";
 import { useTranslation } from "@/hooks/use-translation";
+import { cn } from "@/lib/utils";
+import { Menu } from "lucide-react";
 
 function Router() {
   return (
@@ -41,38 +43,27 @@ function App() {
     setShowSidebar(!isMobile);
   }, [isMobile]);
 
-  // Monitor WebSocket connection status
   useEffect(() => {
     const handleStatusChange = () => {
       if (monitoringStatus === 'connected') {
-        console.log('🔌 Connected to monitoring server');
         toast({
           title: t('notifications.connectionEstablished'),
           description: t('monitoring.connectionSuccess'),
           duration: 3000
         });
       } else if (monitoringStatus === 'disconnected') {
-        console.log('🔌 Disconnected from monitoring server');
         toast({
           title: t('notifications.connectionLost'),
           description: t('monitoring.connectionLost'),
           variant: 'destructive',
           duration: 3000
         });
-      } else if (monitoringStatus === 'reconnecting') {
-        console.log('🔄 Reconnecting to monitoring server...');
-        toast({
-          title: t('notifications.reconnecting'),
-          description: t('monitoring.reconnecting'),
-          duration: 3000
-        });
       }
-    }
+    };
 
     handleStatusChange();
   }, [monitoringStatus]);
 
-  // Process latest event (for important alerts)
   useEffect(() => {
     const handleAlertEvent = () => {
       if (lastEvent && lastEvent.type === 'alert') {
@@ -91,30 +82,21 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <div className="flex min-h-screen bg-background">
+        <div className="min-h-screen bg-background">
           <Sidebar visible={showSidebar} setVisible={setShowSidebar} />
 
-          <div className="flex-1 flex flex-col">
-            <header className="bg-white shadow-sm z-10 sticky top-0">
+          <div className={cn(
+            "flex-1 transition-all duration-300 min-h-screen",
+            showSidebar ? "md:ml-64" : "",
+            showSidebar ? "md:pl-16" : ""
+          )}>
+            <header className="sticky top-0 bg-white shadow-sm z-20">
               <div className="flex items-center justify-between p-4">
                 <button 
                   className="text-gray-500 hover:text-gray-700 md:hidden"
                   onClick={() => setShowSidebar(true)}
                 >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    className="h-6 w-6" 
-                    fill="none" 
-                    viewBox="0 0 24 24" 
-                    stroke="currentColor"
-                  >
-                    <path 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth={2} 
-                      d="M4 6h16M4 12h16M4 18h16" 
-                    />
-                  </svg>
+                  <Menu className="h-6 w-6" />
                 </button>
 
                 <div className="flex items-center space-x-4 ml-auto">
@@ -184,12 +166,12 @@ function App() {
               </div>
             </header>
 
-            <main className="flex-1 p-6">
+            <main className="p-6">
               <Router />
             </main>
           </div>
+          <Toaster />
         </div>
-        <Toaster />
       </LanguageProvider>
     </QueryClientProvider>
   );

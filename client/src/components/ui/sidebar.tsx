@@ -133,34 +133,28 @@ const Sidebar = ({ visible, setVisible }: SidebarProps) => {
     setIsMinimized(!isMinimized);
   };
 
-  const sidebarClasses = cn(
-    "fixed h-full bg-gray-900 text-white transition-all duration-300 ease-in-out",
-    {
-      "w-64": !isMinimized && visible,
-      "w-16": isMinimized && visible,
-      "left-0": visible,
-      "-left-full": !visible,
-      "z-20": true,
-    }
-  );
-
-  const contentClasses = cn(
-    "flex flex-col h-full",
-    isMinimized ? "items-center" : ""
-  );
-
   return (
     <>
-      {/* Backdrop for mobile */}
+      {/* Mobile backdrop */}
       {visible && !isMinimized && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden" 
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" 
           onClick={() => setVisible(false)}
         />
       )}
 
-      <aside className={sidebarClasses}>
-        <div className={contentClasses}>
+      <nav
+        className={cn(
+          "fixed top-0 bottom-0 bg-gray-900 text-white transition-all duration-300 ease-in-out z-30",
+          {
+            "w-64": !isMinimized && visible,
+            "w-16": isMinimized && visible,
+            "left-0": visible,
+            "-left-full": !visible,
+          }
+        )}
+      >
+        <div className="flex flex-col h-full">
           <div className={cn(
             "p-4 flex items-center",
             isMinimized ? "justify-center" : "justify-between"
@@ -186,29 +180,25 @@ const Sidebar = ({ visible, setVisible }: SidebarProps) => {
             )}
 
             <div className="flex items-center">
-              {/* Close button - only visible on mobile and when not minimized */}
               {!isMinimized && (
                 <button 
                   className="md:hidden rounded-md text-gray-400 hover:text-white hover:bg-gray-800 p-1.5"
                   onClick={() => setVisible(false)}
-                  aria-label={t('app.cancel')}
                 >
                   <X className="h-5 w-5" />
                 </button>
               )}
 
-              {/* Minimize/Maximize button - only visible on desktop */}
               <button
                 className="hidden md:block rounded-md text-gray-400 hover:text-white hover:bg-gray-800 p-1.5"
                 onClick={toggleMinimized}
-                aria-label={isMinimized ? t('sidebar.expand') : t('sidebar.collapse')}
               >
                 {isMinimized ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
               </button>
             </div>
           </div>
 
-          <nav className="mt-6 flex-1">
+          <div className="flex-1 overflow-y-auto">
             <div className={cn(
               "space-y-1",
               isMinimized ? "px-2" : "px-4"
@@ -233,7 +223,7 @@ const Sidebar = ({ visible, setVisible }: SidebarProps) => {
                 </Link>
               ))}
             </div>
-          </nav>
+          </div>
 
           {!isMinimized && (
             <div className="p-4 border-t border-gray-800">
@@ -249,7 +239,7 @@ const Sidebar = ({ visible, setVisible }: SidebarProps) => {
             </div>
           )}
         </div>
-      </aside>
+      </nav>
     </>
   );
 };
