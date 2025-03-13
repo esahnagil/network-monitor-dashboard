@@ -25,7 +25,6 @@ function Router() {
       <Route path="/monitoring" component={Monitoring} />
       <Route path="/alerts" component={Alerts} />
       <Route path="/settings" component={Settings} />
-      {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
   );
@@ -69,7 +68,7 @@ function App() {
         });
       }
     }
-    
+
     handleStatusChange();
   }, [monitoringStatus]);
 
@@ -85,47 +84,40 @@ function App() {
         });
       }
     };
-    
+
     handleAlertEvent();
   }, [lastEvent]);
-
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
-  };
 
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex min-h-screen bg-background">
           <Sidebar visible={showSidebar} setVisible={setShowSidebar} />
-          
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <header className="bg-white shadow-sm z-10">
+
+          <div className="flex-1 flex flex-col">
+            <header className="bg-white shadow-sm z-10 sticky top-0">
               <div className="flex items-center justify-between p-4">
-                <div className="flex items-center md:hidden">
-                  <button 
-                    className="text-gray-500 hover:text-gray-700"
-                    onClick={toggleSidebar}
+                <button 
+                  className="text-gray-500 hover:text-gray-700 md:hidden"
+                  onClick={() => setShowSidebar(true)}
+                >
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-6 w-6" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
                   >
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      className="h-6 w-6" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M4 6h16M4 12h16M4 18h16" 
-                      />
-                    </svg>
-                  </button>
-                  <h1 className="font-bold text-xl ml-3">NetGuardian</h1>
-                </div>
-                
-                <div className="flex items-center space-x-4">
+                    <path 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth={2} 
+                      d="M4 6h16M4 12h16M4 18h16" 
+                    />
+                  </svg>
+                </button>
+
+                <div className="flex items-center space-x-4 ml-auto">
                   <div className="relative">
                     <button className="text-gray-500 hover:text-gray-700 relative">
                       <svg 
@@ -145,7 +137,7 @@ function App() {
                       <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">3</span>
                     </button>
                   </div>
-                  
+
                   <div className="relative hidden md:block">
                     <input 
                       type="text" 
@@ -167,7 +159,7 @@ function App() {
                       />
                     </svg>
                   </div>
-                  
+
                   <div className="md:hidden">
                     <button className="text-gray-500 hover:text-gray-700">
                       <svg 
@@ -186,14 +178,15 @@ function App() {
                       </svg>
                     </button>
                   </div>
-                  
-                  {/* Language selector */}
+
                   <LanguageSelector variant="minimal" />
                 </div>
               </div>
             </header>
 
-            <Router />
+            <main className="flex-1 p-6">
+              <Router />
+            </main>
           </div>
         </div>
         <Toaster />

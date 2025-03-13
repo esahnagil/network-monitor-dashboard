@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/use-translation";
-import { X } from "lucide-react";
+import { X, Menu, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 interface SidebarProps {
   visible: boolean;
@@ -11,6 +12,7 @@ interface SidebarProps {
 const Sidebar = ({ visible, setVisible }: SidebarProps) => {
   const [location] = useLocation();
   const { t } = useTranslation();
+  const [isMinimized, setIsMinimized] = useState(false);
 
   const navItems = [
     {
@@ -127,85 +129,125 @@ const Sidebar = ({ visible, setVisible }: SidebarProps) => {
     }
   };
 
+  const toggleMinimized = () => {
+    setIsMinimized(!isMinimized);
+  };
+
   const sidebarClasses = cn(
-    "w-64 bg-gray-900 text-white transition-all duration-300 ease-in-out",
+    "fixed h-full bg-gray-900 text-white transition-all duration-300 ease-in-out",
     {
-      "fixed inset-y-0 left-0 z-50": visible,
-      "hidden": !visible,
-      "md:block": true,
+      "w-64": !isMinimized && visible,
+      "w-16": isMinimized && visible,
+      "left-0": visible,
+      "-left-full": !visible,
+      "z-20": true,
     }
+  );
+
+  const contentClasses = cn(
+    "flex flex-col h-full",
+    isMinimized ? "items-center" : ""
   );
 
   return (
     <>
       {/* Backdrop for mobile */}
-      {visible && (
+      {visible && !isMinimized && (
         <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden" 
+          className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden" 
           onClick={() => setVisible(false)}
         />
       )}
-    
+
       <aside className={sidebarClasses}>
-        <div className="p-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-              />
-            </svg>
-            <h1 className="font-bold text-xl">NetGuardian</h1>
-          </div>
-          
-          {/* Close button - only visible on mobile */}
-          <button 
-            className="md:hidden rounded-md text-gray-400 hover:text-white hover:bg-gray-800 p-1.5"
-            onClick={() => setVisible(false)}
-            aria-label={t('app.cancel')}
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        <nav className="mt-6">
-          <div className="space-y-1 px-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                href={item.path}
-                onClick={closeOnMobile}
-                className={cn(
-                  "flex items-center space-x-2 rounded-md px-4 py-2.5 text-sm font-medium",
-                  {
-                    "bg-gray-800": location === item.path,
-                    "hover:bg-gray-800": location !== item.path,
-                  }
-                )}
+        <div className={contentClasses}>
+          <div className={cn(
+            "p-4 flex items-center",
+            isMinimized ? "justify-center" : "justify-between"
+          )}>
+            {!isMinimized && (
+              <div className="flex items-center space-x-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-primary"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                  />
+                </svg>
+                <h1 className="font-bold text-xl">NetGuardian</h1>
+              </div>
+            )}
+
+            <div className="flex items-center">
+              {/* Close button - only visible on mobile and when not minimized */}
+              {!isMinimized && (
+                <button 
+                  className="md:hidden rounded-md text-gray-400 hover:text-white hover:bg-gray-800 p-1.5"
+                  onClick={() => setVisible(false)}
+                  aria-label={t('app.cancel')}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+
+              {/* Minimize/Maximize button - only visible on desktop */}
+              <button
+                className="hidden md:block rounded-md text-gray-400 hover:text-white hover:bg-gray-800 p-1.5"
+                onClick={toggleMinimized}
+                aria-label={isMinimized ? t('sidebar.expand') : t('sidebar.collapse')}
               >
-                {item.icon}
-                <span>{item.name}</span>
-              </Link>
-            ))}
-          </div>
-        </nav>
-        <div className="absolute bottom-0 w-64 bg-gray-900 p-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-white font-medium">JD</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium">John Doe</p>
-              <p className="text-xs text-gray-400">{t('user.role.admin')}</p>
+                {isMinimized ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+              </button>
             </div>
           </div>
+
+          <nav className="mt-6 flex-1">
+            <div className={cn(
+              "space-y-1",
+              isMinimized ? "px-2" : "px-4"
+            )}>
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  href={item.path}
+                  onClick={closeOnMobile}
+                  className={cn(
+                    "flex items-center rounded-md py-2.5 text-sm font-medium transition-colors",
+                    isMinimized ? "justify-center px-2" : "px-4 space-x-2",
+                    {
+                      "bg-gray-800": location === item.path,
+                      "hover:bg-gray-800": location !== item.path,
+                    }
+                  )}
+                  title={isMinimized ? item.name : undefined}
+                >
+                  {item.icon}
+                  {!isMinimized && <span>{item.name}</span>}
+                </Link>
+              ))}
+            </div>
+          </nav>
+
+          {!isMinimized && (
+            <div className="p-4 border-t border-gray-800">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                  <span className="text-white font-medium">JD</span>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">John Doe</p>
+                  <p className="text-xs text-gray-400">{t('user.role.admin')}</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </aside>
     </>
