@@ -86,9 +86,8 @@ function App() {
           <Sidebar visible={showSidebar} setVisible={setShowSidebar} />
 
           <div className={cn(
-            "flex-1 transition-all duration-300 min-h-screen",
-            showSidebar ? "md:ml-64" : "",
-            showSidebar ? "md:pl-16" : ""
+            "transition-all duration-300 min-h-screen",
+            showSidebar ? "md:ml-64" : "ml-0"
           )}>
             <header className="sticky top-0 bg-white shadow-sm z-20">
               <div className="flex items-center justify-between p-4">

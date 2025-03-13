@@ -145,12 +145,12 @@ const Sidebar = ({ visible, setVisible }: SidebarProps) => {
 
       <nav
         className={cn(
-          "fixed top-0 bottom-0 bg-gray-900 text-white transition-all duration-300 ease-in-out z-30",
+          "fixed left-0 top-0 bottom-0 bg-gray-900 text-white transition-all duration-300 ease-in-out z-30",
           {
-            "w-64": !isMinimized && visible,
-            "w-16": isMinimized && visible,
-            "left-0": visible,
-            "-left-full": !visible,
+            "translate-x-0": visible,
+            "-translate-x-full": !visible,
+            "w-64": !isMinimized,
+            "w-16": isMinimized,
           }
         )}
       >
