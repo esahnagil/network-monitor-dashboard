@@ -137,20 +137,21 @@ const Sidebar = ({ visible, setVisible }: SidebarProps) => {
     <>
       {/* Mobile backdrop */}
       {visible && !isMinimized && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden" 
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
           onClick={() => setVisible(false)}
         />
       )}
 
       <nav
         className={cn(
-          "fixed left-0 top-0 bottom-0 bg-gray-900 text-white transition-transform duration-300 ease-in-out z-30 row-start-1 row-end-4 col-start-1",
+          "absolute left-0 top-0 h-full bg-gray-900 text-white transition-all duration-300 ease-in-out",
           {
-            "translate-x-0": visible,
-            "-translate-x-full": !visible,
             "w-64": !isMinimized,
             "w-16": isMinimized,
+            "-ml-64": !visible && !isMinimized,
+            "-ml-16": !visible && isMinimized,
+            "ml-0": visible,
           }
         )}
       >
@@ -181,7 +182,7 @@ const Sidebar = ({ visible, setVisible }: SidebarProps) => {
 
             <div className="flex items-center">
               {!isMinimized && (
-                <button 
+                <button
                   className="md:hidden rounded-md text-gray-400 hover:text-white hover:bg-gray-800 p-1.5"
                   onClick={() => setVisible(false)}
                 >
