@@ -82,11 +82,11 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <div className="min-h-screen bg-background">
+        <div className="grid min-h-screen bg-background">
           <Sidebar visible={showSidebar} setVisible={setShowSidebar} />
 
           <div className={cn(
-            "transition-all duration-300 min-h-screen",
+            "grid grid-cols-1",
             showSidebar ? "md:ml-64" : "ml-0"
           )}>
             <header className="sticky top-0 bg-white shadow-sm z-20">
