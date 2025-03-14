@@ -3,37 +3,39 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Device } from "@/types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Table, 
+import {
+  Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogFooter,
   DialogTrigger
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
 } from "@/components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
+import MonitorForm from "@/components/forms/monitor-form"; // Import the MonitorForm component
+
 
 // Device type mapping for display
 const deviceTypes = [
@@ -57,98 +59,98 @@ type DeviceFormValues = z.infer<typeof deviceSchema>;
 const DeviceIcon = ({ type }: { type: string }) => {
   const icons: Record<string, JSX.Element> = {
     'router': (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        className="h-5 w-5 text-gray-500" 
-        fill="none" 
-        viewBox="0 0 24 24" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 text-gray-500"
+        fill="none"
+        viewBox="0 0 24 24"
         stroke="currentColor"
       >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={2} 
-          d="M4 6h16M4 10h16M4 14h16M4 18h16" 
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M4 6h16M4 10h16M4 14h16M4 18h16"
         />
       </svg>
     ),
     'switch': (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        className="h-5 w-5 text-gray-500" 
-        fill="none" 
-        viewBox="0 0 24 24" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 text-gray-500"
+        fill="none"
+        viewBox="0 0 24 24"
         stroke="currentColor"
       >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={2} 
-          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" 
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
         />
       </svg>
     ),
     'server': (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        className="h-5 w-5 text-gray-500" 
-        fill="none" 
-        viewBox="0 0 24 24" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 text-gray-500"
+        fill="none"
+        viewBox="0 0 24 24"
         stroke="currentColor"
       >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={2} 
-          d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" 
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
         />
       </svg>
     ),
     'access_point': (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        className="h-5 w-5 text-gray-500" 
-        fill="none" 
-        viewBox="0 0 24 24" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 text-gray-500"
+        fill="none"
+        viewBox="0 0 24 24"
         stroke="currentColor"
       >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={2} 
-          d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" 
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
         />
       </svg>
     ),
     'firewall': (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        className="h-5 w-5 text-gray-500" 
-        fill="none" 
-        viewBox="0 0 24 24" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 text-gray-500"
+        fill="none"
+        viewBox="0 0 24 24"
         stroke="currentColor"
       >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={2} 
-          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" 
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
         />
       </svg>
     ),
     'default': (
-      <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        className="h-5 w-5 text-gray-500" 
-        fill="none" 
-        viewBox="0 0 24 24" 
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-5 w-5 text-gray-500"
+        fill="none"
+        viewBox="0 0 24 24"
         stroke="currentColor"
       >
-        <path 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          strokeWidth={2} 
-          d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" 
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
         />
       </svg>
     )
@@ -160,8 +162,9 @@ const DeviceIcon = ({ type }: { type: string }) => {
 const Devices = () => {
   const { toast } = useToast();
   const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddMonitorOpen, setIsAddMonitorOpen] = useState(false);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Fetch devices
   const { data: devices, isLoading } = useQuery<Device[]>({
@@ -238,6 +241,12 @@ const Devices = () => {
     }
   };
 
+  // Add new function to handle monitor addition
+  const handleAddMonitor = (device: Device) => {
+    setSelectedDevice(device);
+    setIsAddMonitorOpen(true);
+  };
+
   return (
     <main className="flex-1 overflow-y-auto bg-gray-100 p-4">
       <div className="mb-6">
@@ -251,18 +260,18 @@ const Devices = () => {
           <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
             <DialogTrigger asChild>
               <Button>
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-5 w-5 mr-2" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M12 4v16m8-8H4" 
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
                   />
                 </svg>
                 Add Device
@@ -306,8 +315,8 @@ const Devices = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Device Type</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
+                        <Select
+                          onValueChange={field.onChange}
                           defaultValue={field.value}
                         >
                           <FormControl>
@@ -328,8 +337,8 @@ const Devices = () => {
                     )}
                   />
                   <DialogFooter>
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={createDeviceMutation.isPending}
                     >
                       {createDeviceMutation.isPending ? "Adding..." : "Add Device"}
@@ -393,40 +402,61 @@ const Devices = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button variant="outline" size="sm">
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            className="h-4 w-4" 
-                            fill="none" 
-                            viewBox="0 0 24 24" 
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAddMonitor(device)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
                             stroke="currentColor"
                           >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" 
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          Monitor
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                             />
                           </svg>
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="text-red-500 hover:text-red-700"
                           onClick={() => confirmDelete(device)}
                         >
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            className="h-4 w-4" 
-                            fill="none" 
-                            viewBox="0 0 24 24" 
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4"
+                            fill="none"
+                            viewBox="0 0 24 24"
                             stroke="currentColor"
                           >
-                            <path 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              strokeWidth={2} 
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                             />
                           </svg>
                         </Button>
@@ -446,6 +476,19 @@ const Devices = () => {
         </div>
       </div>
 
+      {/* Add Monitor Dialog */}
+      <Dialog open={isAddMonitorOpen} onOpenChange={setIsAddMonitorOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Add Monitor for {selectedDevice?.name}</DialogTitle>
+          </DialogHeader>
+          <MonitorForm
+            deviceId={selectedDevice?.id}
+            onSuccess={() => setIsAddMonitorOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
@@ -456,14 +499,14 @@ const Devices = () => {
             Are you sure you want to delete {selectedDevice?.name}? This action cannot be undone and will remove all associated monitors and data.
           </p>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
             >
               Cancel
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleDelete}
               disabled={deleteDeviceMutation.isPending}
             >
