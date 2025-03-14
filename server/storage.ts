@@ -14,6 +14,8 @@ import {
   type Alert,
   type InsertAlert
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc, and, asc } from "drizzle-orm";
 
 export interface IStorage {
   // User management
@@ -338,4 +340,240 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+  
+  // Device methods
+  async getDevices(): Promise<Device[]> {
+    return await db.select().from(devices);
+  }
+  
+  async getDevice(id: number): Promise<Device | undefined> {
+    const [device] = await db.select().from(devices).where(eq(devices.id, id));
+    return device || undefined;
+  }
+  
+  async createDevice(insertDevice: InsertDevice): Promise<Device> {
+    const now = new Date();
+    const [device] = await db
+      .insert(devices)
+      .values({
+        ...insertDevice,
+        createdAt: now,
+        updatedAt: now
+      })
+      .returning();
+    return device;
+  }
+  
+  async updateDevice(id: number, partialDevice: Partial<InsertDevice>): Promise<Device | undefined> {
+    const [updatedDevice] = await db
+      .update(devices)
+      .set({
+        ...partialDevice,
+        updatedAt: new Date()
+      })
+      .where(eq(devices.id, id))
+      .returning();
+    return updatedDevice || undefined;
+  }
+  
+  async deleteDevice(id: number): Promise<boolean> {
+    // Delete all monitors for this device (cascade delete)
+    const deviceMonitors = await this.getMonitorsByDeviceId(id);
+    for (const monitor of deviceMonitors) {
+      await this.deleteMonitor(monitor.id);
+    }
+    
+    const result = await db
+      .delete(devices)
+      .where(eq(devices.id, id))
+      .returning();
+    
+    return result.length > 0;
+  }
+  
+  // Monitor methods
+  async getMonitors(): Promise<Monitor[]> {
+    return await db.select().from(monitors);
+  }
+  
+  async getMonitorsByDeviceId(deviceId: number): Promise<Monitor[]> {
+    return await db
+      .select()
+      .from(monitors)
+      .where(eq(monitors.deviceId, deviceId));
+  }
+  
+  async getMonitor(id: number): Promise<Monitor | undefined> {
+    const [monitor] = await db
+      .select()
+      .from(monitors)
+      .where(eq(monitors.id, id));
+    return monitor || undefined;
+  }
+  
+  async createMonitor(insertMonitor: InsertMonitor): Promise<Monitor> {
+    const now = new Date();
+    const [monitor] = await db
+      .insert(monitors)
+      .values({
+        ...insertMonitor,
+        createdAt: now,
+        updatedAt: now
+      })
+      .returning();
+    return monitor;
+  }
+  
+  async updateMonitor(id: number, partialMonitor: Partial<InsertMonitor>): Promise<Monitor | undefined> {
+    const [updatedMonitor] = await db
+      .update(monitors)
+      .set({
+        ...partialMonitor,
+        updatedAt: new Date()
+      })
+      .where(eq(monitors.id, id))
+      .returning();
+    return updatedMonitor || undefined;
+  }
+  
+  async deleteMonitor(id: number): Promise<boolean> {
+    // Delete all results for this monitor
+    await db
+      .delete(monitorResults)
+      .where(eq(monitorResults.monitorId, id));
+    
+    const result = await db
+      .delete(monitors)
+      .where(eq(monitors.id, id))
+      .returning();
+    
+    return result.length > 0;
+  }
+  
+  // Monitor results methods
+  async getLatestMonitorResult(monitorId: number): Promise<MonitorResult | undefined> {
+    const [result] = await db
+      .select()
+      .from(monitorResults)
+      .where(eq(monitorResults.monitorId, monitorId))
+      .orderBy(desc(monitorResults.timestamp))
+      .limit(1);
+      
+    return result || undefined;
+  }
+  
+  async getMonitorResults(monitorId: number, limit: number): Promise<MonitorResult[]> {
+    return await db
+      .select()
+      .from(monitorResults)
+      .where(eq(monitorResults.monitorId, monitorId))
+      .orderBy(desc(monitorResults.timestamp))
+      .limit(limit);
+  }
+  
+  async createMonitorResult(
+    monitorId: number, 
+    status: string, 
+    responseTime?: number, 
+    details?: any
+  ): Promise<MonitorResult> {
+    const [result] = await db
+      .insert(monitorResults)
+      .values({
+        monitorId,
+        status,
+        responseTime,
+        details,
+        timestamp: new Date()
+      })
+      .returning();
+    
+    return result;
+  }
+  
+  // Alerts methods
+  async getAlerts(status?: string): Promise<Alert[]> {
+    if (status) {
+      return await db
+        .select()
+        .from(alerts)
+        .where(eq(alerts.status, status))
+        .orderBy(desc(alerts.timestamp));
+    }
+    
+    return await db
+      .select()
+      .from(alerts)
+      .orderBy(desc(alerts.timestamp));
+  }
+  
+  async getAlertsByDeviceId(deviceId: number): Promise<Alert[]> {
+    return await db
+      .select()
+      .from(alerts)
+      .where(eq(alerts.deviceId, deviceId))
+      .orderBy(desc(alerts.timestamp));
+  }
+  
+  async getAlert(id: number): Promise<Alert | undefined> {
+    const [alert] = await db
+      .select()
+      .from(alerts)
+      .where(eq(alerts.id, id));
+    return alert || undefined;
+  }
+  
+  async createAlert(insertAlert: InsertAlert): Promise<Alert> {
+    const [alert] = await db
+      .insert(alerts)
+      .values({
+        ...insertAlert,
+        timestamp: new Date()
+      })
+      .returning();
+      
+    return alert;
+  }
+  
+  async updateAlertStatus(id: number, status: string): Promise<Alert | undefined> {
+    const now = new Date();
+    const alertUpdate: any = { status };
+    
+    if (status === 'acknowledged') {
+      alertUpdate.acknowledgedAt = now;
+    }
+    
+    if (status === 'resolved') {
+      alertUpdate.resolvedAt = now;
+    }
+    
+    const [updatedAlert] = await db
+      .update(alerts)
+      .set(alertUpdate)
+      .where(eq(alerts.id, id))
+      .returning();
+      
+    return updatedAlert || undefined;
+  }
+}
+
+// Initialize the storage implementation
+export const storage = new DatabaseStorage();
