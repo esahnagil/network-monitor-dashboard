@@ -75,7 +75,7 @@ const PerformanceMetrics = () => {
             <div className="flex items-center space-x-2">
               <Select defaultValue={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger className="w-36 h-8 text-xs">
-                  <SelectValue />
+                  <SelectValue placeholder="Select time range" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="day">Last 24 hours</SelectItem>
@@ -167,7 +167,7 @@ const PerformanceMetrics = () => {
             <div className="flex items-center space-x-2">
               <Select defaultValue={selectedDevice} onValueChange={setSelectedDevice}>
                 <SelectTrigger className="w-40 h-8 text-xs">
-                  <SelectValue />
+                  <SelectValue placeholder="Select device" />
                 </SelectTrigger>
                 <SelectContent>
                   {deviceList?.map(device => (
@@ -210,13 +210,8 @@ const PerformanceMetrics = () => {
                   <Tooltip />
                   <Bar 
                     dataKey="usage" 
-                    name="Usage %" 
-                    fill={(entry) => {
-                      const value = entry.usage;
-                      if (value < 50) return "#22c55e"; // green
-                      if (value < 80) return "#f97316"; // orange
-                      return "#ef4444"; // red
-                    }}
+                    name="Usage %"
+                    fill="#3b82f6"
                   />
                 </BarChart>
               </ResponsiveContainer>
