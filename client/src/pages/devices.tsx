@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Device } from "@/types";
+import { Device, Monitor } from "@/types";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -34,8 +34,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import MonitorForm from "@/components/forms/monitor-form"; // Import the MonitorForm component
-
+import MonitorForm from "@/components/forms/monitor-form";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 // Device type mapping for display
 const deviceTypes = [
@@ -159,6 +160,77 @@ const DeviceIcon = ({ type }: { type: string }) => {
   return icons[type] || icons.default;
 };
 
+const MonitorIcon = ({ type }: { type: string }) => {
+  const icons: Record<string, JSX.Element> = {
+    'icmp': (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 text-blue-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+    ),
+    'snmp': (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 text-purple-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+        />
+      </svg>
+    ),
+    'http': (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 text-green-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+        />
+      </svg>
+    ),
+    'tcp': (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-4 w-4 text-yellow-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
+      </svg>
+    )
+  };
+
+  return icons[type] || icons.default;
+};
+
 const Devices = () => {
   const { toast } = useToast();
   const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
@@ -167,9 +239,24 @@ const Devices = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Fetch devices
-  const { data: devices, isLoading } = useQuery<Device[]>({
+  const { data: devices, isLoading: isLoadingDevices } = useQuery<Device[]>({
     queryKey: ['/api/devices'],
   });
+
+  // Fetch monitors
+  const { data: monitors, isLoading: isLoadingMonitors } = useQuery<Monitor[]>({
+    queryKey: ['/api/monitors'],
+  });
+
+  // Group monitors by device
+  const monitorsByDevice = monitors?.reduce((acc, monitor) => {
+    const deviceId = monitor.deviceId;
+    if (!acc[deviceId]) {
+      acc[deviceId] = [];
+    }
+    acc[deviceId].push(monitor);
+    return acc;
+  }, {} as Record<number, Monitor[]>) || {};
 
   // Form for adding a new device
   const form = useForm<DeviceFormValues>({
@@ -254,227 +341,194 @@ const Devices = () => {
         <p className="text-gray-600">Manage and monitor your network devices</p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm mb-6">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h3 className="font-semibold">Device Management</h3>
-          <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 4v16m8-8H4"
-                  />
-                </svg>
-                Add Device
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add New Device</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Device Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter device name" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="ipAddress"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>IP Address</FormLabel>
-                        <FormControl>
-                          <Input placeholder="192.168.1.1" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Device Type</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select device type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {deviceTypes.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <DialogFooter>
-                    <Button
-                      type="submit"
-                      disabled={createDeviceMutation.isPending}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {isLoadingDevices || isLoadingMonitors ? (
+          // Loading state
+          Array(3).fill(0).map((_, idx) => (
+            <Card key={idx} className="animate-pulse">
+              <div className="p-6">
+                <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="space-y-3 mt-4">
+                  {Array(2).fill(0).map((_, i) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          ))
+        ) : devices?.map((device) => (
+          <Card key={device.id} className="overflow-hidden">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center space-x-3">
+                  <DeviceIcon type={device.type} />
+                  <div>
+                    <h3 className="font-semibold">{device.name}</h3>
+                    <p className="text-sm text-gray-500">{device.ipAddress}</p>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAddMonitor(device)}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
                     >
-                      {createDeviceMutation.isPending ? "Adding..." : "Add Device"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    Monitor
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() => confirmDelete(device)}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
+                  </Button>
+                </div>
+              </div>
 
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Device</TableHead>
-                <TableHead>IP Address</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Added</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                Array(5).fill(0).map((_, idx) => (
-                  <TableRow key={idx} className="animate-pulse">
-                    <TableCell>
-                      <div className="h-4 bg-gray-200 rounded w-24"></div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="h-4 bg-gray-200 rounded w-32"></div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="h-4 bg-gray-200 rounded w-16"></div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : devices?.length ? (
-                devices.map((device) => (
-                  <TableRow key={device.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center">
-                        <div className="mr-2">
-                          <DeviceIcon type={device.type} />
+              {/* Device Monitors */}
+              <div className="mt-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Monitors</h4>
+                <div className="space-y-2">
+                  {monitorsByDevice[device.id]?.length ? (
+                    monitorsByDevice[device.id].map((monitor) => (
+                      <div
+                        key={monitor.id}
+                        className="flex items-center justify-between p-2 bg-gray-50 rounded-md"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <MonitorIcon type={monitor.type} />
+                          <span className="text-sm font-medium">
+                            {monitor.type.toUpperCase()}
+                          </span>
                         </div>
-                        {device.name}
-                      </div>
-                    </TableCell>
-                    <TableCell>{device.ipAddress}</TableCell>
-                    <TableCell>
-                      {deviceTypes.find(t => t.value === device.type)?.label || device.type}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(device.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAddMonitor(device)}
+                        <Badge
+                          variant={monitor.enabled ? "default" : "secondary"}
+                          className={cn(
+                            "text-xs",
+                            monitor.enabled && "bg-green-500"
+                          )}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4 mr-1"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
-                          Monitor
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                            />
-                          </svg>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => confirmDelete(device)}
-                        >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </Button>
+                          {monitor.enabled ? "Active" : "Disabled"}
+                        </Badge>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-6 text-gray-500">
-                    No devices found. Add a device to get started.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-2">
+                      No monitors configured
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
+
+      {/* Add Device Dialog */}
+      <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Device</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Device Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter device name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="ipAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>IP Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="192.168.1.1" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Device Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select device type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {deviceTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  disabled={createDeviceMutation.isPending}
+                >
+                  {createDeviceMutation.isPending ? "Adding..." : "Add Device"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
 
       {/* Add Monitor Dialog */}
       <Dialog open={isAddMonitorOpen} onOpenChange={setIsAddMonitorOpen}>
