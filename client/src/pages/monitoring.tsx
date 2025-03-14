@@ -714,8 +714,8 @@ const Monitoring = () => {
                         <FormItem>
                           <FormLabel>Device</FormLabel>
                           <Select 
-                            onValueChange={(value) => field.onChange(parseInt(value))} 
-                            defaultValue={field.value.toString()}
+                            onValueChange={(value) => field.onChange(parseInt(value))}
+                            value={field.value ? field.value.toString() : undefined}
                           >
                             <FormControl>
                               <SelectTrigger>
