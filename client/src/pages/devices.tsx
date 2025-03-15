@@ -539,7 +539,6 @@ const Devices = () => {
           <div className="grid grid-cols-2 gap-6">
             {/* Left side - Monitor Form */}
             <div className="border-r pr-6">
-              <h3 className="text-sm font-medium mb-4">Add New Monitor</h3>
               <MonitorForm
                 deviceId={selectedDevice?.id}
                 onSuccess={() => setIsAddMonitorOpen(false)}
@@ -548,7 +547,26 @@ const Devices = () => {
 
             {/* Right side - Existing Monitors */}
             <div>
-              <h3 className="text-sm font-medium mb-4">Existing Monitors</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-medium">Existing Monitors</h3>
+                <Button variant="outline" size="sm" onClick={() => setIsAddMonitorOpen(false)}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  Add Monitor
+                </Button>
+              </div>
               <div className="space-y-3">
                 {monitorsByDevice[selectedDevice?.id ?? 0]?.map((monitor) => (
                   <div
