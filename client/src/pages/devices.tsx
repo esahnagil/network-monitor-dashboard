@@ -336,9 +336,102 @@ const Devices = () => {
 
   return (
     <main className="flex-1 overflow-y-auto bg-gray-100 p-4">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold">Devices</h2>
-        <p className="text-gray-600">Manage and monitor your network devices</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-semibold">Devices</h2>
+          <p className="text-gray-600">Manage and monitor your network devices</p>
+        </div>
+        <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Add Device
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Device</DialogTitle>
+            </DialogHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Device Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter device name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="ipAddress"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>IP Address</FormLabel>
+                      <FormControl>
+                        <Input placeholder="192.168.1.1" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Device Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select device type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {deviceTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter>
+                  <Button
+                    type="submit"
+                    disabled={createDeviceMutation.isPending}
+                  >
+                    {createDeviceMutation.isPending ? "Adding..." : "Add Device"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -455,80 +548,6 @@ const Devices = () => {
           </Card>
         ))}
       </div>
-
-      {/* Add Device Dialog */}
-      <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Device</DialogTitle>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Device Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter device name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="ipAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>IP Address</FormLabel>
-                    <FormControl>
-                      <Input placeholder="192.168.1.1" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Device Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select device type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {deviceTypes.map((type) => (
-                          <SelectItem key={type.value} value={type.value}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <DialogFooter>
-                <Button
-                  type="submit"
-                  disabled={createDeviceMutation.isPending}
-                >
-                  {createDeviceMutation.isPending ? "Adding..." : "Add Device"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
 
       {/* Add Monitor Dialog */}
       <Dialog open={isAddMonitorOpen} onOpenChange={setIsAddMonitorOpen}>
