@@ -481,32 +481,10 @@ const Devices = () => {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M12 4v16m8-8H4"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    Add Monitor
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-500 hover:text-red-700"
-                    onClick={() => confirmDelete(device)}
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-4 w-4 mr-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                    Delete
+                    Manage Monitor
                   </Button>
                 </div>
               </div>
@@ -554,14 +532,112 @@ const Devices = () => {
 
       {/* Add Monitor Dialog */}
       <Dialog open={isAddMonitorOpen} onOpenChange={setIsAddMonitorOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-5xl">
           <DialogHeader>
             <DialogTitle>Manage Monitor - {selectedDevice?.name}</DialogTitle>
           </DialogHeader>
-          <MonitorForm
-            deviceId={selectedDevice?.id}
-            onSuccess={() => setIsAddMonitorOpen(false)}
-          />
+          <div className="grid grid-cols-2 gap-6">
+            {/* Left side - Monitor Form */}
+            <div className="border-r pr-6">
+              <h3 className="text-sm font-medium mb-4">Add New Monitor</h3>
+              <MonitorForm
+                deviceId={selectedDevice?.id}
+                onSuccess={() => setIsAddMonitorOpen(false)}
+              />
+            </div>
+
+            {/* Right side - Existing Monitors */}
+            <div>
+              <h3 className="text-sm font-medium mb-4">Existing Monitors</h3>
+              <div className="space-y-3">
+                {monitorsByDevice[selectedDevice?.id ?? 0]?.map((monitor) => (
+                  <div
+                    key={monitor.id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <MonitorIcon type={monitor.type} />
+                      <div>
+                        <p className="font-medium">{monitor.type.toUpperCase()}</p>
+                        <p className="text-sm text-gray-500">
+                          Check every {monitor.interval}s
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="ghost" size="sm">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                          />
+                        </svg>
+                      </Button>
+                      <Button variant="ghost" size="sm" className="text-red-500">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {!monitorsByDevice[selectedDevice?.id ?? 0]?.length && (
+                  <p className="text-center text-gray-500 py-4">
+                    No monitors configured for this device
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="mt-6 pt-4 border-t">
+            <Button
+              variant="destructive"
+              onClick={() => {
+                setIsAddMonitorOpen(false);
+                confirmDelete(selectedDevice!);
+              }}
+              className="mr-auto"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+              Delete Device
+            </Button>
+            <Button variant="outline" onClick={() => setIsAddMonitorOpen(false)}>
+              Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
